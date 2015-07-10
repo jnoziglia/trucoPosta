@@ -13,17 +13,42 @@ var insertDocuments = function(db, callback) {
   });
 }
 
+var findDocuments = function(db, callback) {
+  // Get the documents collection 
+  var collection = db.collection('documents');
+  // Find some documents 
+  collection.find({}).toArray(function(err, docs) {
+    assert.equal(err, null);
+    assert.equal(9, docs.length);
+    console.log("Found the following records");
+    console.dir(docs);
+    callback(docs);
+  });
+}
+
 var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
  
 // Connection URL 
 var url = 'mongodb://localhost:27017/myproject';
 // Use connect method to connect to the Server 
-MongoClient.connect(url, function(err, db) {
-  assert.equal(null, err);
-  console.log("Connected correctly to server");
- 
-  insertDocuments(db, function() {
-    db.close();
+
+
+var http = require('http');
+var fs = require('fs');
+var index = fs.readFileSync('views/index.html');
+
+http.createServer(function (req, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  MongoClient.connect(url, function(err, db) {
+    assert.equal(null, err);
+    console.log("Connected correctly to server");
+   
+    findDocuments(db, function() {
+        res.write(docs);
+    });
+
   });
-});
+
+  res.end(index);
+}).listen(8080);
