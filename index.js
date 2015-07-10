@@ -1,3 +1,4 @@
+
 var insertDocuments = function(db, callback) {
   // Get the documents collection 
   var collection = db.collection('documents');
@@ -26,9 +27,6 @@ var findDocuments = function(db, callback) {
   });
 }
 
-function logArrayElements(element, index, array) {
-    console.log("a[" + index + "] = " + element);
-}
 
 var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
@@ -51,6 +49,7 @@ http.createServer(function (req, res) {
     findDocuments(db, function(docs) {
         docs.forEach(function(element, index, array) {
           res.write(array[index].a.toString());
+         
         });
         res.end(index); 
     });
@@ -59,3 +58,4 @@ http.createServer(function (req, res) {
 
 
 }).listen(8080);
+
