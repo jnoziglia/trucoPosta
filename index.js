@@ -26,6 +26,10 @@ var findDocuments = function(db, callback) {
   });
 }
 
+function logArrayElements(element, index, array) {
+    console.log("a[" + index + "] = " + element);
+}
+
 var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
  
@@ -44,11 +48,14 @@ http.createServer(function (req, res) {
     assert.equal(null, err);
     console.log("Connected correctly to server");
    
-    findDocuments(db, function() {
-        res.write(docs);
+    findDocuments(db, function(docs) {
+        docs.forEach(function(element, index, array) {
+          res.write(array[index].a.toString());
+        });
+        res.end(index); 
     });
 
   });
 
-  res.end(index);
+
 }).listen(8080);
