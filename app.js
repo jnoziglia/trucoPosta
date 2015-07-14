@@ -3,6 +3,8 @@ var express = require("express"),
     bodyParser  = require("body-parser"),
     methodOverride = require("method-override");
     mongoose = require('mongoose');
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -19,20 +21,29 @@ mongoose.connect('mongodb://localhost/truco', function(err, res) {
     console.log('Connected to Database');
 });
 
-router.get('/', function(req, res) {
+/*router.get('/', function(req, res) {
    res.send("Hello World!");
-});
+});*/
 
 
 cartasRt.route('/cartas')
   .get(Controller.findAllcartas)
   .post(Controller.addCarta);
 
-app.use('/', cartasRt);
+//app.use('/', cartasRt);
 
 
-app.listen(3000, function() {
+server.listen(3000, function() {
   console.log("Node server running on http://localhost:3000");
 });
 
+app.get('/', function (req, res) {
+  res.sendFile(__dirname + '/views/index.html');
+});
 
+io.on('connection', function (socket) {
+  socket.emit('news', { hello: 'world' });
+  socket.on('my other event', function (data) {
+    console.log(data);
+  });
+});
