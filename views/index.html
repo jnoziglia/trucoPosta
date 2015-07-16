@@ -1,3 +1,6 @@
+<html>
+
+<head>
 <script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
 <script>
   var socket = io.connect('http://localhost:3000');
@@ -5,4 +8,32 @@
     console.log(data);
     socket.emit('my other event', { my: 'data' });
   });
+  socket.on('devuelvo', function (data) {
+	alert(data);
+  });
+
+  socket.on('sala', function(data) {
+  	alert(data.partida);
+  	window.location.href = 'http://localhost:3000/vista';
+  });
+
+  function logConsola() {
+  	//alert('cliquio');
+  	socket.emit('log', { msj: 'holis' });
+  	
+  }
+
+  function crearSala() {
+  	//alert('cliquio');
+  	socket.emit('salaNueva', { msj: 'holis' });
+  	
+  }
 </script>
+</head>
+<body>
+	<a href="javascript:void(0)" onclick="logConsola()">Holis</a>
+	<a href="javascript:void(0)" onclick="crearSala()">Crear sala</a>
+
+</body>
+
+</html>

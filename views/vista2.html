@@ -1,0 +1,26 @@
+<html>
+
+<head>
+<script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
+<script>
+  var socket = io.connect('http://localhost:3000/vista');
+  socket.on('msj', function (data) {
+    console.log(data);
+  });
+  socket.on('devuelvo', function (data) {
+	   alert(data);
+  });
+
+  function logConsola() {
+  	//alert('cliquio');
+  	socket.emit('log', { msj: 'holis' });
+  	
+  }
+</script>
+</head>
+<body>
+	<a href="javascript:void(0)" onclick="logConsola()">Vista</a>
+
+</body>
+
+</html>
