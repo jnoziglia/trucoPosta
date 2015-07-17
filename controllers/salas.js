@@ -1,6 +1,11 @@
 var contador = 0;
+var partidas = new Array(1,2,3);
 
-exports.getPartida = function(callback) {
+exports.getPartidas = function(req, res) {
+	res.status(200).send(partidas);
+}
+
+exports.createPartida = function(callback){
 	contador++;
 	callback(contador);
 }

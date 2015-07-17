@@ -26,13 +26,16 @@ mongoose.connect('mongodb://localhost/truco', function(err, res) {
 /*router.get('/', function(req, res) {
    res.send("Hello World!");
 });*/
-
+  
+salasRt.route('/partidas')
+  .get(CtrlSalas.getPartidas);
 
 cartasRt.route('/cartas')
   .get(Controller.findAllcartas)
   .post(Controller.addCarta);
 
 app.use('/', cartasRt);
+app.use('/', salasRt);
 
 
 server.listen(3000, function() {
@@ -45,6 +48,10 @@ app.get('/', function (req, res) {
 
 app.get('/vista', function (req, res) {
   res.sendFile(__dirname + '/views/vista2.html');
+});
+
+app.get('/css', function (req, res) {
+  res.sendFile(__dirname + '/css/styles.css');
 });
 
 io.on('connection', function (socket) {
@@ -60,9 +67,12 @@ io.on('connection', function (socket) {
 
   socket.on('salaNueva', function(data) {
     console.log(Controller.findAllcartas);
-    CtrlSalas.getPartida(function(partida){
+    CtrlSalas.createPartida(function(partida){
+      socket.emit('sala', {partida: partida})
+    })   
+    /*CtrlSalas.getPartida(function(partida){
       socket.emit('sala', {partida: partida});
-    })
+    })*/
     
   });
 });

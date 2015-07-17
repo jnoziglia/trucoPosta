@@ -1,0 +1,15 @@
+.juego{
+	background-color:green;
+	width: 800px;
+	min-height: 600px;
+	margin: auto;
+	padding: 0px;
+}
+
+.partida{
+	width: 150px;
+	height: 100px;
+	background-color: #fff;
+	float: left;
+	margin-right: 10px;
+}
