@@ -36,8 +36,8 @@ partidasRt.route('/partidas/:id')
   .get(CtrlPartidas.findById)
   .delete(CtrlPartidas.deletePartida);
 
-partidasRt.route('/maxPartida')
-  .get(CtrlPartidas.findMax);
+/*partidasRt.route('/maxPartida')
+  .get(CtrlPartidas.findMax);*/
   
 cartasRt.route('/cartas')
   .get(Controller.findAllcartas)
@@ -47,7 +47,7 @@ app.use('/', cartasRt);
 app.use('/', partidasRt);
 
 
-server.listen(8000, function() {
+server.listen(8080, function() {
   console.log("Node server running on http://localhost:8000");
 });
 
