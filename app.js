@@ -18,13 +18,16 @@ var models = require('./models/partida_model')(app, mongoose);
 var Controller = require('./controllers/cartas');
 var CtrlPartidas = require('./controllers/partidas');
 
+//importo las rutas
+require('./routes')(app, io); 
+
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/truco', function(err, res) {
     if(err) throw err;
     console.log('Connected to Database');
 });
 
-  
+//NOTA MENTAL: esto deberia ir en las rutas???  
 partidasRt.route('/partidas')
   .get(CtrlPartidas.findAllPartidas)
   .post(CtrlPartidas.addPartida);
@@ -44,21 +47,10 @@ app.use('/', cartasRt);
 app.use('/', partidasRt);
 
 
-server.listen(8080, function() {
-  console.log("Node server running on http://localhost:8080");
+server.listen(8000, function() {
+  console.log("Node server running on http://localhost:8000");
 });
 
-app.get('/', function (req, res) {
-  res.sendFile(__dirname + '/views/index.html');
-});
-
-app.get('/vista', function (req, res) {
-  res.sendFile(__dirname + '/views/vista2.html');
-});
-
-app.get('/css', function (req, res) {
-  res.sendFile(__dirname + '/css/styles.css');
-});
 
 io.on('connection', function (socket) {
   socket.emit('news', { hello: 'world' });
@@ -66,11 +58,10 @@ io.on('connection', function (socket) {
     console.log(data);
   });
 
-
-  socket.on('partidaCreada', function(data) {
-    console.log(data);
-    socket.broadcast.emit('recargar');
-  });
+socket.on('partidaCreada', function(data) {
+  console.log(data);
+  socket.broadcast.emit('recargar');
+});
 
   socket.on('partidaNueva', function(data) {
     console.log(Controller.findAllcartas);
