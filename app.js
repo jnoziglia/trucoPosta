@@ -28,6 +28,13 @@ mongoose.connect('mongodb://localhost/truco', function(err, res) {
 partidasRt.route('/partidas')
   .get(CtrlPartidas.findAllPartidas)
   .post(CtrlPartidas.addPartida);
+
+partidasRt.route('/partidas/:id')
+  .get(CtrlPartidas.findById)
+  .delete(CtrlPartidas.deletePartida);
+
+partidasRt.route('/maxPartida')
+  .get(CtrlPartidas.findMax);
 cartasRt.route('/cartas')
   .get(Controller.findAllcartas)
   .post(Controller.addCarta);
@@ -36,8 +43,8 @@ app.use('/', cartasRt);
 app.use('/', partidasRt);
 
 
-server.listen(3000, function() {
-  console.log("Node server running on http://localhost:3000");
+server.listen(8080, function() {
+  console.log("Node server running on http://localhost:8080");
 });
 
 app.get('/', function (req, res) {
@@ -63,6 +70,11 @@ io.on('connection', function (socket) {
     socket.emit('devuelvo', { msj2: 'llego todo piola' });
   });
 
+  socket.on('partidaCreada', function(data) {
+    console.log(data);
+    socket.broadcast.emit('recargar');
+  });
+
   socket.on('partidaNueva', function(data) {
     console.log(Controller.findAllcartas);
     CtrlPartidas.createPartida(function(partida){
@@ -72,10 +84,10 @@ io.on('connection', function (socket) {
       socket.emit('partida', {partida: partida});
     })*/
   });
-socket.on('disconnect', function(data) {
+/*socket.on('disconnect', function(data) {
     console.log('user disconnected');
     socket.broadcast.emit('disconnected');
-  });
+  });*/
 
 });
 
@@ -84,9 +96,9 @@ nsp.on('connection', function(socket){
   console.log('someone connected');
   socket.emit('msj', 'socketVista');
 
-  socket.on('disconnect', function(data) {
+  /*socket.on('disconnect', function(data) {
     console.log('user disconnected');
     socket.broadcast.emit('disconnected');
-  });
+  });*/
 });
 //nsp.emit('hi', 'everyone!');
