@@ -13,9 +13,13 @@
 	alert(data);
   });
 
-  socket.on('sala', function(data) {
-  	$('.juego').html('Sala creada: '+data.partida+ ', esperando jugador...');
+  socket.on('partida', function(data) {
+  	$('.juego').html('Partida creada: '+data.partida+ ', esperando jugador...');
 
+  });
+
+  socket.on('disconnected', function(data) {
+  	alert('usuario desconectado');
   });
 
   function logConsola() {
@@ -24,15 +28,23 @@
   	
   }
 
-  function crearSala() {
+  function crearPartida() {
   	//alert('cliquio');
-  	socket.emit('salaNueva', { msj: 'holis' });
-  	
+  	//socket.emit('partidaNueva', { msj: 'holis' });
+  	$.post( "/partidas", {fecha:"fruta", player1:5, player2:2} );
+  	/*$.ajax({
+  		type: "POST",
+	    url: '/partidas',
+	    data: {fecha:"fruta", player1:1, player2:2}, // or JSON.stringify ({name: 'jonas'}),
+	    //success: function(data) { alert('data: ' + data); },
+	    contentType: "application/json",
+	    dataType: 'json'
+	});*/
   }
   function getPartidas(){
   	$.get( "/partidas", function( data ) {
 		 data.forEach(function(item){
-  			$('.juego').append('<div class="partida">'+item+'</div>');
+  			$('.juego').append('<div class="partida">'+item.player1+'</div>');
   		});
 	});
 
@@ -46,7 +58,7 @@
 </head>
 <body onload="getPartidas();">
 	<a href="javascript:void(0)" onclick="logConsola()">Holis</a>
-	<a href="javascript:void(0)" onclick="crearSala()">Crear sala</a>
+	<a href="javascript:void(0)" onclick="crearPartida()">Crear partida</a>
 	<div class="juego">
 		
 

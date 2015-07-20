@@ -12,6 +12,10 @@
 	   alert(data);
   });
 
+  socket.on('disconnected', function(data) {
+    alert('usuario desconectado');
+  });
+
   function logConsola() {
   	//alert('cliquio');
   	socket.emit('log', { msj: 'holis' });

@@ -12,10 +12,11 @@ app.use(methodOverride());
 
 var router = express.Router();
 var cartasRt = express.Router();
-var salasRt = express.Router();
+var partidasRt = express.Router();
 var models = require('./models/carta_model')(app, mongoose);
+var models = require('./models/partida_model')(app, mongoose);
 var Controller = require('./controllers/cartas');
-var CtrlSalas = require('./controllers/salas');
+var CtrlPartidas = require('./controllers/partidas');
 
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/truco', function(err, res) {
@@ -23,19 +24,16 @@ mongoose.connect('mongodb://localhost/truco', function(err, res) {
     console.log('Connected to Database');
 });
 
-/*router.get('/', function(req, res) {
-   res.send("Hello World!");
-});*/
   
-salasRt.route('/partidas')
-  .get(CtrlSalas.getPartidas);
-
+partidasRt.route('/partidas')
+  .get(CtrlPartidas.findAllPartidas)
+  .post(CtrlPartidas.addPartida);
 cartasRt.route('/cartas')
   .get(Controller.findAllcartas)
   .post(Controller.addCarta);
 
 app.use('/', cartasRt);
-app.use('/', salasRt);
+app.use('/', partidasRt);
 
 
 server.listen(3000, function() {
@@ -65,21 +63,30 @@ io.on('connection', function (socket) {
     socket.emit('devuelvo', { msj2: 'llego todo piola' });
   });
 
-  socket.on('salaNueva', function(data) {
+  socket.on('partidaNueva', function(data) {
     console.log(Controller.findAllcartas);
-    CtrlSalas.createPartida(function(partida){
-      socket.emit('sala', {partida: partida})
+    CtrlPartidas.createPartida(function(partida){
+      socket.emit('partida', {partida: partida})
     })   
-    /*CtrlSalas.getPartida(function(partida){
-      socket.emit('sala', {partida: partida});
+    /*CtrlPartidas.getPartida(function(partida){
+      socket.emit('partida', {partida: partida});
     })*/
-    
   });
+socket.on('disconnect', function(data) {
+    console.log('user disconnected');
+    socket.broadcast.emit('disconnected');
+  });
+
 });
 
 var nsp = io.of('/vista');
 nsp.on('connection', function(socket){
   console.log('someone connected');
   socket.emit('msj', 'socketVista');
+
+  socket.on('disconnect', function(data) {
+    console.log('user disconnected');
+    socket.broadcast.emit('disconnected');
+  });
 });
 //nsp.emit('hi', 'everyone!');

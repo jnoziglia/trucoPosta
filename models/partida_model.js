@@ -5,7 +5,7 @@ var mongoose = require('mongoose'),
 var partidaSchema = new Schema({
   fecha:    { type: String },
   player1:     { type: Number },
-  player2:  { type: String },
+  player2:  { type: Number },
 });
 
 module.exports = mongoose.model('partida', partidaSchema);
