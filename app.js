@@ -35,6 +35,7 @@ partidasRt.route('/partidas/:id')
 
 partidasRt.route('/maxPartida')
   .get(CtrlPartidas.findMax);
+  
 cartasRt.route('/cartas')
   .get(Controller.findAllcartas)
   .post(Controller.addCarta);
@@ -65,10 +66,6 @@ io.on('connection', function (socket) {
     console.log(data);
   });
 
-  socket.on('log', function(data) {
-    console.log(data);
-    socket.emit('devuelvo', { msj2: 'llego todo piola' });
-  });
 
   socket.on('partidaCreada', function(data) {
     console.log(data);
@@ -96,9 +93,5 @@ nsp.on('connection', function(socket){
   console.log('someone connected');
   socket.emit('msj', 'socketVista');
 
-  /*socket.on('disconnect', function(data) {
-    console.log('user disconnected');
-    socket.broadcast.emit('disconnected');
-  });*/
 });
 //nsp.emit('hi', 'everyone!');

@@ -19,18 +19,14 @@
   });
 
   socket.on('recargar', function(data) {
-  	location.reload(true);
+  	$(".juego").html('');
+  	getPartidas();
   });
 
   socket.on('disconnected', function(data) {
   	alert('usuario desconectado');
   });
 
-	function logConsola() {
-		//alert('cliquio');
-		socket.emit('log', { msj: 'holis' });
-		
-	}
 
 	function crearPartida() {
 		//alert('cliquio');
