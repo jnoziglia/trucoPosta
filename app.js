@@ -3,6 +3,7 @@ var express = require("express"),
     bodyParser  = require("body-parser"),
     methodOverride = require("method-override");
     mongoose = require('mongoose');
+
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
@@ -13,11 +14,19 @@ app.use(methodOverride());
 var router = express.Router();
 var cartasRt = express.Router();
 var partidasRt = express.Router();
+//user routes
+var userRt = express.Router();
+
+//MODELS
 var models = require('./models/carta_model')(app, mongoose);
 var models = require('./models/partida_model')(app, mongoose);
+var models = require('./models/user_model')(app, mongoose);
+
+//CONTROLLERS
 var Controller = require('./controllers/cartas');
 var CtrlPartidas = require('./controllers/partidas');
-
+var CtrlAuth = require('./controllers/auth');
+var middleware = require('./middleware');
 //importo las rutas
 require('./routes')(app, io); 
 
@@ -27,7 +36,25 @@ mongoose.connect('mongodb://localhost/truco', function(err, res) {
     console.log('Connected to Database');
 });
 
-//NOTA MENTAL: esto deberia ir en las rutas???  
+store  = new express.session.MemoryStore;
+app.use(express.session({ secret: 'something', store: store }));
+
+//NOTA MENTAL: esto deberia ir en las rutas???
+//API  USERS
+userRt.route('/auth/signup')
+  .post(CtrlAuth.emailSignup);
+
+userRt.route('/auth/login')
+  .post(CtrlAuth.emailLogin);
+// Ruta solo accesible si estás autenticado 
+userRt.get('/private',middleware.ensureAuthenticated, function(req, res) {
+  if(err) throw err;
+  console.log('User logued');
+} );
+
+/////////////////////////////
+
+
 partidasRt.route('/partidas')
   .get(CtrlPartidas.findAllPartidas)
   .post(CtrlPartidas.addPartida);
@@ -45,6 +72,7 @@ cartasRt.route('/cartas')
 
 app.use('/', cartasRt);
 app.use('/', partidasRt);
+app.use('/', userRt);
 
 
 server.listen(8080, function() {

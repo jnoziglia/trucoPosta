@@ -1,0 +1,27 @@
+
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+</head>
+<body>
+
+	<form method="post" action="#">
+
+	email: <input type="text" name="email" id="email"><br />
+	
+	<a onclick="sendLogin();" href="javascript:void(0);">Login</a>
+	</form>
+	<script>
+	function sendLogin(){
+		var email = $('#email').val();
+		$.post( "/auth/login", {email: email} )
+		.done(function(data) {
+			console.log(data);
+		});
+	}
+		
+
+		
+	</script>
+</body>
+</html>

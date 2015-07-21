@@ -13,4 +13,12 @@ module.exports = function(app,io){
 	  res.sendFile(__dirname + '/css/styles.css');
 	});
 
+	//auth
+	app.get('/auth/signup', function (req, res) {
+	  res.sendFile(__dirname + '/views/auth/signup.html');
+	});
+	app.get('/auth/login', function (req, res) {
+	  res.sendFile(__dirname + '/views/auth/login.html');
+	});
+
 }	
