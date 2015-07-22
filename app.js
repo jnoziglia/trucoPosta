@@ -6,6 +6,8 @@ var express = require("express"),
 
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
+var jwt = require('jsonwebtoken');
+var config = require('./config');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -17,6 +19,16 @@ var partidasRt = express.Router();
 //user routes
 var userRt = express.Router();
 
+//CONFIG
+
+var port = process.env.PORT || 8080; // used to create, sign, and verify tokens
+app.set('tokenultrasecreto', config.secret); // secret variable
+
+// use body parser so we can get info from POST and/or URL parameters
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+
 //MODELS
 var models = require('./models/carta_model')(app, mongoose);
 var models = require('./models/partida_model')(app, mongoose);
@@ -26,9 +38,8 @@ var models = require('./models/user_model')(app, mongoose);
 var Controller = require('./controllers/cartas');
 var CtrlPartidas = require('./controllers/partidas');
 var CtrlAuth = require('./controllers/auth');
-var middleware = require('./middleware');
-//importo las rutas
-require('./routes')(app, io); 
+//var middleware = require('./middleware');
+
 
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/truco', function(err, res) {
@@ -36,43 +47,157 @@ mongoose.connect('mongodb://localhost/truco', function(err, res) {
     console.log('Connected to Database');
 });
 
-store  = new express.session.MemoryStore;
-app.use(express.session({ secret: 'something', store: store }));
+//auth
+  userRt.get('/signup', function (req, res) {
+    res.sendFile(__dirname + '/views/auth/signup.html');
+  });
+  userRt.get('/login', function (req, res) {
+    res.sendFile(__dirname + '/views/auth/login.html');
+  });
 
 //NOTA MENTAL: esto deberia ir en las rutas???
 //API  USERS
-userRt.route('/auth/signup')
+userRt.route('/signup')
   .post(CtrlAuth.emailSignup);
 
-userRt.route('/auth/login')
+userRt.route('/login')
   .post(CtrlAuth.emailLogin);
-// Ruta solo accesible si estás autenticado 
-userRt.get('/private',middleware.ensureAuthenticated, function(req, res) {
-  if(err) throw err;
-  console.log('User logued');
-} );
 
+//importo las rutas
+//require('./routes')(app, io); 
+
+// route middleware to verify a token
+partidasRt.use(function(req, res, next) {
+
+  // check header or url parameters or post parameters for token
+  var token = req.body.token || req.query.token || req.headers['x-access-token'];
+
+  // decode token
+  if (token) {
+
+    // verifies secret and checks exp
+    jwt.verify(token, app.get('superSecret'), function(err, decoded) {      
+      if (err) {
+        return res.json({ success: false, message: 'Failed to authenticate token.' });    
+      } else {
+        // if everything is good, save to request for use in other routes
+        req.decoded = decoded;    
+        next();
+      }
+    });
+
+  } else {
+
+    // if there is no token
+    // return an error
+    return res.status(403).send({ 
+        success: false, 
+        message: 'No token provided.' 
+    });
+    
+  }
+});
 /////////////////////////////
 
+// route middleware to verify a token
+cartasRt.use(function(req, res, next) {
 
-partidasRt.route('/partidas')
+  // check header or url parameters or post parameters for token
+  var token = req.body.token || req.query.token || req.headers['x-access-token'];
+
+  // decode token
+  if (token) {
+
+    // verifies secret and checks exp
+    jwt.verify(token, app.get('superSecret'), function(err, decoded) {      
+      if (err) {
+        return res.json({ success: false, message: 'Failed to authenticate token.' });    
+      } else {
+        // if everything is good, save to request for use in other routes
+        req.decoded = decoded;    
+        next();
+      }
+    });
+
+  } else {
+
+    // if there is no token
+    // return an error
+    return res.status(403).send({ 
+        success: false, 
+        message: 'No token provided.' 
+    });
+    
+  }
+});
+/////////////////////////////
+
+// route middleware to verify a token
+  router.use(function(req, res, next) {
+
+    // check header or url parameters or post parameters for token
+    var token = req.body.token || req.query.token || req.headers['x-access-token'];
+
+    // decode token
+    if (token) {
+
+      // verifies secret and checks exp
+      jwt.verify(token, app.get('superSecret'), function(err, decoded) {      
+        if (err) {
+          return res.json({ success: false, message: 'Failed to authenticate token.' });    
+        } else {
+          // if everything is good, save to request for use in other routes
+          req.decoded = decoded;    
+          next();
+        }
+      });
+
+    } else {
+
+      // if there is no token
+      // return an error
+      return res.status(403).send({ 
+          success: false, 
+          message: 'No token provided.' 
+      });
+      
+    }
+  });
+  /////////////////////////////
+
+
+partidasRt.route('/')
   .get(CtrlPartidas.findAllPartidas)
   .post(CtrlPartidas.addPartida);
 
-partidasRt.route('/partidas/:id')
+partidasRt.route('/:id')
   .get(CtrlPartidas.findById)
   .delete(CtrlPartidas.deletePartida);
 
 /*partidasRt.route('/maxPartida')
   .get(CtrlPartidas.findMax);*/
   
-cartasRt.route('/cartas')
+cartasRt.route('/')
   .get(Controller.findAllcartas)
   .post(Controller.addCarta);
 
-app.use('/', cartasRt);
-app.use('/', partidasRt);
-app.use('/', userRt);
+router.get('/home', function (req, res) {
+  res.sendFile(__dirname + '/views/index.html');
+});
+
+router.get('/vista', function (req, res) {
+  res.sendFile(__dirname + '/views/vista2.html');
+});
+
+router.get('/css', function (req, res) {
+  res.sendFile(__dirname + '/css/styles.css');
+});
+
+app.use('/cartas', cartasRt);
+app.use('/partidas', partidasRt);
+app.use('/auth', userRt);
+app.use('/home', router);
+
 
 
 server.listen(8080, function() {
