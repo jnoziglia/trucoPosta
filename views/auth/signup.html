@@ -1,13 +1,28 @@
 <html>
 <head>
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 </head>
 <body>
 	<form method="post" action="#">
-	username: <input type="text" name="username"><br />
-	email: <input type="text" name="email"><br />
-	password: <input type="password" name="password">
-	<input type="submit">
+	username: <input type="text" name="username" id="user"><br />
+	email: <input type="text" name="email" id="email"><br />
+	password: <input type="password" name="password" id="password">
+	<a onclick="sendSignUp();" href="javascript:void(0);">Sign up</a>
 	</form>
+
+
+<script>
+
+	function sendSignUp(){
+		var user = {username:$('#user').val(), password:$('#password').val(), email:$('#email').val()}
+		/*var user = $('#user').val();
+		var password = $('#password').val();
+		var email = $('#email').val();*/
+		$.post( "/auth/signup", user )
+		.done(function(data) {
+			console.log(data);
+		});
+	}	
+</script>
 </body>
 </html>

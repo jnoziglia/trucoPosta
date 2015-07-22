@@ -24,9 +24,6 @@ var userRt = express.Router();
 var port = process.env.PORT || 8080; // used to create, sign, and verify tokens
 app.set('tokenultrasecreto', config.secret); // secret variable
 
-// use body parser so we can get info from POST and/or URL parameters
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 
 
 //MODELS

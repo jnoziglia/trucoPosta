@@ -7,18 +7,19 @@
 
 	<form method="post" action="#">
 
-	email: <input type="text" name="email" id="email"><br />
+	user: <input type="text" name="user" id="user"><br />
 	password: <input type="text" name="password" id="password"><br />
 	
 	<a onclick="sendLogin();" href="javascript:void(0);">Login</a>
 	</form>
 	<script>
 	function sendLogin(){
-		var email = $('#email').val();
-		var email = $('#password').val();
-		$.post( "/auth/login", {email: email} )
+		var user = $('#user').val();
+		var password = $('#password').val();
+		$.post( "/auth/login", {username: user, password: password} )
 		.done(function(data) {
 			console.log(data);
+			$.get( "/home");
 		});
 	}
 		
