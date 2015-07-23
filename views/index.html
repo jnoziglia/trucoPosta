@@ -14,12 +14,12 @@
   });
 
   socket.on('partida', function(data) {
-  	$('.juego').html('Partida creada: '+data.partida+ ', esperando jugador...');
+  	$('.partidas').html('Partida creada: '+data.partida+ ', esperando jugador...');
 
   });
 
   socket.on('recargar', function(data) {
-  	$(".juego").html('');
+  	$(".partidas").html('');
   	getPartidas();
   });
 
@@ -50,8 +50,48 @@
 	function getPartidas(){
 		$.get( "/partidas", function( data ) {
 	 		data.forEach(function(item){
-				$('.juego').append('<div class="partida">'+item.numero+'</div>');
+				$('.partidas').append('<div class="partida">'+item.numero+'</div>');
 			});
+		});
+	}
+
+	function sendLogin(){
+		var user = $('#user').val();
+		var password = $('#password').val();
+		$.post( "/auth/login", {username: user, password: password} )
+		.done(function(data) {
+			console.log(data);
+			localStorage.setItem('userToken', data.token);
+			$.get( "/home", { token: data.token }, function(data) { 
+				$('.main').html('');
+				$('.main').append(data);
+				/*$.get( "/partidas", function( data ) {
+			 		data.forEach(function(item){
+						$('.partidas').append('<div class="partida">'+item.numero+'</div>');
+					});*/
+
+				$.ajax({
+				  method: "GET",
+				  url: "/partidas",
+				  'beforeSend': function(xhr) {
+					    if (localStorage.getItem('userToken')) {
+					      xhr.setRequestHeader('x-access-token', localStorage.getItem('userToken'));
+					    }
+					}
+				})
+				.done(function( res ) {
+			 		res.forEach(function(item){
+						$('.partidas').append('<div class="partida">'+item.numero+'</div>');
+					});
+				});
+			});
+			/*$.ajax({
+		         url: "/home",
+		         data: { token: data.token },
+		         type: "GET",
+		         beforeSend: function(xhr){xhr.setRequestHeader('x-access-token', data.token);},
+		         success: function() { alert('Success!' + data.token); }
+		      });*/
 		});
 	}
   
@@ -60,12 +100,15 @@
 </script>
 <link rel="stylesheet" type="text/css" href="./css">
 </head>
-<body onload="getPartidas();">
-	<a href="javascript:void(0)" onclick="logConsola()">Holis</a>
-	<a href="javascript:void(0)" onclick="crearPartida()">Crear partida</a>
-	<div class="juego">
-		
+<body>
+	<div class="main">
+		<form method="post" action="#">
 
+		user: <input type="text" name="user" id="user"><br />
+		password: <input type="text" name="password" id="password"><br />
+		
+		<a onclick="sendLogin();" href="javascript:void(0);">Login</a>
+		</form>
 	</div>
 </body>
 

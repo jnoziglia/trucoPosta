@@ -19,7 +19,7 @@ var partidasRt = express.Router();
 //user routes
 var userRt = express.Router();
 //file routes
-var fileRt = express.Router();
+var rtGral = express.Router();
 
 //CONFIG
 
@@ -188,22 +188,26 @@ cartasRt.route('/')
   .post(Controller.addCarta);
 
 router.get('/', function (req, res) {
-  res.sendFile(__dirname + '/views/index.html');
+  res.sendFile(__dirname + '/views/partidas.html');
 });
 
-fileRt.get('/vista', function (req, res) {
+rtGral.get('/vista', function (req, res) {
   res.sendFile(__dirname + '/views/vista2.html');
 });
 
-fileRt.get('/css', function (req, res) {
+rtGral.get('/css', function (req, res) {
   res.sendFile(__dirname + '/css/styles.css');
+});
+
+rtGral.get('/main', function (req, res) {
+  res.sendFile(__dirname + '/views/index.html');
 });
 
 app.use('/cartas', cartasRt);
 app.use('/partidas', partidasRt);
 app.use('/auth', userRt);
 app.use('/home', router);
-app.use('/', fileRt);
+app.use('/', rtGral);
 
 
 

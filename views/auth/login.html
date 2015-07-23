@@ -19,6 +19,7 @@
 		$.post( "/auth/login", {username: user, password: password} )
 		.done(function(data) {
 			console.log(data);
+			localStorage.setItem('userToken', data.token);
 			$.get( "/home", { token: data.token }, function() { alert('Success!' + data.token) });
 			/*$.ajax({
 		         url: "/home",
