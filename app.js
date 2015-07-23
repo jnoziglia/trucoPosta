@@ -134,7 +134,12 @@ cartasRt.use(function(req, res, next) {
 
     // check header or url parameters or post parameters for token
     var token = req.body.token || req.query.token || req.headers['x-access-token'];
-
+    
+    /*console.log('token post:'+req.body.token);
+    console.log('token header:'+req.headers);
+    console.log('token query:'+req.query.token);
+    console.log('token real:'+token);*/
+    
     // decode token
     if (token) {
 

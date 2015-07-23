@@ -19,7 +19,14 @@
 		$.post( "/auth/login", {username: user, password: password} )
 		.done(function(data) {
 			console.log(data);
-			$.get( "/home");
+			//$.get( "/home", { token: data.token });
+			$.ajax({
+		         url: "/home",
+		         data: { token: data.token },
+		         type: "GET",
+		         beforeSend: function(xhr){xhr.setRequestHeader('x-access-token', data.token);},
+		         success: function() { alert('Success!' + data.token); }
+		      });
 		});
 	}
 		
