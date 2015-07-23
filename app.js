@@ -18,6 +18,8 @@ var cartasRt = express.Router();
 var partidasRt = express.Router();
 //user routes
 var userRt = express.Router();
+//file routes
+var fileRt = express.Router();
 
 //CONFIG
 
@@ -35,6 +37,8 @@ var models = require('./models/user_model')(app, mongoose);
 var Controller = require('./controllers/cartas');
 var CtrlPartidas = require('./controllers/partidas');
 var CtrlAuth = require('./controllers/auth');
+var CtrlRoutes = require('./routes');
+CtrlRoutes.app = app;
 //var middleware = require('./middleware');
 
 
@@ -73,7 +77,7 @@ partidasRt.use(function(req, res, next) {
   if (token) {
 
     // verifies secret and checks exp
-    jwt.verify(token, app.get('superSecret'), function(err, decoded) {      
+    jwt.verify(token, app.get('tokenultrasecreto'), function(err, decoded) {      
       if (err) {
         return res.json({ success: false, message: 'Failed to authenticate token.' });    
       } else {
@@ -106,7 +110,7 @@ cartasRt.use(function(req, res, next) {
   if (token) {
 
     // verifies secret and checks exp
-    jwt.verify(token, app.get('superSecret'), function(err, decoded) {      
+    jwt.verify(token, app.get('tokenultrasecreto'), function(err, decoded) {      
       if (err) {
         return res.json({ success: false, message: 'Failed to authenticate token.' });    
       } else {
@@ -144,7 +148,7 @@ cartasRt.use(function(req, res, next) {
     if (token) {
 
       // verifies secret and checks exp
-      jwt.verify(token, app.get('superSecret'), function(err, decoded) {      
+      jwt.verify(token, app.get('tokenultrasecreto'), function(err, decoded) {      
         if (err) {
           return res.json({ success: false, message: 'Failed to authenticate token.' });    
         } else {
@@ -183,15 +187,15 @@ cartasRt.route('/')
   .get(Controller.findAllcartas)
   .post(Controller.addCarta);
 
-router.get('/home', function (req, res) {
+router.get('/', function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-router.get('/vista', function (req, res) {
+fileRt.get('/vista', function (req, res) {
   res.sendFile(__dirname + '/views/vista2.html');
 });
 
-router.get('/css', function (req, res) {
+fileRt.get('/css', function (req, res) {
   res.sendFile(__dirname + '/css/styles.css');
 });
 
@@ -199,6 +203,7 @@ app.use('/cartas', cartasRt);
 app.use('/partidas', partidasRt);
 app.use('/auth', userRt);
 app.use('/home', router);
+app.use('/', fileRt);
 
 
 

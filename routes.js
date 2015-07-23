@@ -1,6 +1,7 @@
 //rutas
 
 var jwt = require('jsonwebtoken');
+var app;
 
 module.exports = function(app,io){
 	
@@ -17,7 +18,7 @@ module.exports = function(app,io){
 	  if (token) {
 	  	
 	    // verifies secret and checks exp
-	    jwt.verify(token, app.get('superSecret'), function(err, decoded) {      
+	    jwt.verify(token, app.get('tokenultrasecreto'), function(err, decoded) {      
 	      if (err) {
 	        return res.json({ success: false, message: 'Failed to authenticate token.' });    
 	      } else {
