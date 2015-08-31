@@ -41,11 +41,24 @@
 				socket.emit('partidaCreada', data);
 			});
 		});*/
+		$.ajax({
+				  method: "POST",
+				  url: "/partidas",
+				  data: {fecha:Date(), player1:1},
+				  'beforeSend': function(xhr) {
+					    if (localStorage.getItem('userToken')) {
+					      xhr.setRequestHeader('x-access-token', localStorage.getItem('userToken'));
+					    }
+					}
+				})
+				.done(function(data) {
+					socket.emit('partidaCreada', data);
+				});
 		
-		$.post( "/partidas", {fecha:Date(), player1:1} )
+		/*$.post( "/partidas", {fecha:Date(), player1:1} )
 		.done(function(data) {
 			socket.emit('partidaCreada', data);
-		});
+		});*/
 	}
 
 	function getPartidas(){
