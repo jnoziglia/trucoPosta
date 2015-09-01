@@ -180,6 +180,7 @@ partidasRt.route('/:id')
   .get(CtrlPartidas.findById)
   .delete(CtrlPartidas.deletePartida);
 
+
 /*partidasRt.route('/maxPartida')
   .get(CtrlPartidas.findMax);*/
   
@@ -205,6 +206,7 @@ rtGral.get('/main', function (req, res) {
 
 app.use('/cartas', cartasRt);
 app.use('/partidas', partidasRt);
+app.use('/partida', partidasRt);
 app.use('/auth', userRt);
 app.use('/home', router);
 app.use('/', rtGral);

@@ -127,12 +127,39 @@ function isLogued(){
 				})
 				.done(function( res ) {
 			 		res.forEach(function(item){
-						$('.partidas').append('<div class="partida">'+item.numero+'</div>');
+						$('.partidas').append('<div class="partida"><a href="javascript:void(0)" class="jugarPartida" data-partida="'+item.numero+'">'+item.numero+'</a></div>');
 					});
 				});
 			});
 	}
 }
+
+$('.jugarPartida').click(function(){
+	var token = localStorage.getItem('userToken');
+	var partida_id = $(this).data('partida');
+	if(token){
+		$.get( "/partidas", { token: token, partida: partida_id }, function(data) { 
+				$('.main').html('');
+				$('.main').append(data);
+
+				$.ajax({
+				  method: "GET",
+				  url: "/partidas",
+				  'beforeSend': function(xhr) {
+					    if (localStorage.getItem('userToken')) {
+					      xhr.setRequestHeader('x-access-token', localStorage.getItem('userToken'));
+					    }
+					}
+				})
+				.done(function( res ) {
+			 		res.forEach(function(item){
+						$('.partidas').append('<div class="partida"><a href="javascript:void(0)" class="jugarPartida" data-partida="'+item.numero+'">'+item.numero+'</a></div>');
+					});
+				});
+			});
+	}
+
+});
 
 function logout(){
 	localStorage.removeItem('userToken');
