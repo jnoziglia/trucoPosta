@@ -6,7 +6,9 @@ var partidaSchema = new Schema({
   fecha:    { type: Date },
   player1:     { type: Number },
   player2:  { type: Number },
-  numero: {type: Number}
+  numero: {type: Number},
+  cartas1: {type: Array},
+  cartas2: {type: Array}
 });
 
 /*partidaSchema.statics.findMax = function (callback) {

@@ -145,7 +145,6 @@ function logout(){
 
 $(document).ready(function(){
 	$('.main').on('click', '.jugarPartida', function(){
-		alert('hola');
 		var token = localStorage.getItem('userToken');
 		var partida_id = $(this).data('partida');
 		if(token){
@@ -161,7 +160,6 @@ $(document).ready(function(){
 					})
 					.done(function( res ) {
 				 		$('.main').html('');
-				 		console.log(res);
 						$('.main').append(res);
 					});
 			/*$.get( "/partidas/"+partida_id, { token: token }, function(data) { 

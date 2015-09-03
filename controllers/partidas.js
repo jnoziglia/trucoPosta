@@ -17,6 +17,65 @@ exports.addPartida = function(req, res) {
     console.log('POST');
     console.log(req.body);
 
+    var cartas = [
+            '1_basto',
+            '2_basto',
+            '3_basto',
+            '4_basto',
+            '5_basto',
+            '6_basto',
+            '7_basto',
+            '10_basto',
+            '11_basto',
+            '12_basto',
+            '1_espada',
+            '2_espada',
+            '3_espada',
+            '4_espada',
+            '5_espada',
+            '6_espada',
+            '7_espada',
+            '10_espada',
+            '11_espada',
+            '12_espada',
+            '1_copa',
+            '2_copa',
+            '3_copa',
+            '4_copa',
+            '5_copa',
+            '6_copa',
+            '7_copa',
+            '10_copa',
+            '11_copa',
+            '12_copa',
+            '1_oro',
+            '2_oro',
+            '3_oro',
+            '4_oro',
+            '5_oro',
+            '6_oro',
+            '7_oro',
+            '10_oro',
+            '11_oro',
+            '12_oro'
+    ];
+       
+    var arr = []
+    for (var i = 0; i < 6; i++) {
+         var randomnumber=Math.ceil(Math.random()*39);
+          var found=false;
+          for(var j=0; j<arr.length;j++){
+            if(arr[j]==randomnumber){found=true;break}
+          }
+          if(!found)arr[arr.length]=randomnumber;
+    };
+    var cartasPosta = arr.map(function(num) {
+      return cartas[num];
+    }); 
+
+
+
+
     var query = Partida.findOne({}) // 'this' now refers to the Member class
     .sort('-numero');
     query.exec(function (err, num) {
@@ -26,7 +85,9 @@ exports.addPartida = function(req, res) {
 	        fecha:    req.body.fecha,
 	        player1:     req.body.player1,
 	        player2:     req.body.player2,
-	        numero: 	num.numero+1
+	        numero: 	num.numero+1,
+            cartas1: [cartasPosta[0],cartasPosta[1],cartasPosta[2]],
+            cartas2: [cartasPosta[3],cartasPosta[4],cartasPosta[5]]
 	    });
 
 	    partida.save(function(err, partida) {
@@ -48,8 +109,8 @@ exports.findById = function(req, res) {
     if(err) return res.send(500, err.message);
 
     console.log('GET /partida/' + req.params.id);
-   
-        res.status(200).jsonp(partida);
+        //res.status(200).jsonp(partida);
+        res.send(200).jsonp(partida);
     });
 };
 
