@@ -33,14 +33,14 @@ exports.emailSignup = function(req, res) {
         //si todo sale bien envio el token
         if(err) return res.send(500, err.message);
         return res.status(200).jsonp(user);
-            //.send({token: service.createToken(user)});
+        //.send({token: service.createToken(user)});
     });
 };
 
 exports.emailLogin = function(req, res) { 
     // find the user
     console.log(req.body.username);
-  User.findOne({
+    User.findOne({
     username: req.body.username
   }, function(err, user) {
 
@@ -65,7 +65,8 @@ exports.emailLogin = function(req, res) {
         res.json({
           success: true,
           message: 'Enjoy your token!',
-          token: token
+          token: token,
+          user: User
         });
       }   
 }

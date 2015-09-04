@@ -74,9 +74,18 @@
 		var password = $('#password').val();
 		$.post( "/auth/login", {username: user, password: password} )
 		.done(function(data) {
-			console.log(data);
+			
+			//ACA TENGO EL USER!!!
+			var partida = JSON.parse(JSON.stringify(data));
+			var user = JSON.parse(JSON.stringify(partida.user));
+			console.log(user); 	
+
+			//guardo el id del user en localstorage
+
 			localStorage.setItem('userToken', data.token);
-			$.get( "/home", { token: data.token }, function(data) { 
+			localStorage.setItem('userID', user._id);
+
+			$.get( "/home", { token: data.token, user: user }, function(data) { 
 				$('.main').html('');
 				$('.main').append(data);
 				/*$.get( "/partidas", function( data ) {
@@ -128,8 +137,10 @@ function isLogued(){
 				.done(function( res ) {
 
 			 		res.forEach(function(item){
-			 			console.log(item);
-						$('.partidas').append('<div class="partida"><a href="javascript:void(0)" class="jugarPartida" data-partida="'+item._id+'">'+item.numero+'</a></div>');
+			 			var partida = JSON.parse(JSON.stringify(res));
+			 			var user = JSON.parse(JSON.stringify(partida.user));
+			 			console.log(user);
+			 			$('.partidas').append('<div class="partida"><a href="javascript:void(0)" class="jugarPartida" data-partida="'+item._id+'">'+item.numero+'</a></div>');
 					});
 				});
 			});
