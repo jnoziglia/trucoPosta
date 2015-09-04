@@ -160,7 +160,14 @@ $(document).ready(function(){
 					})
 					.done(function( res ) {
 				 		$('.main').html('');
-						$('.main').append(res);
+				 		createElements();
+						var partida = JSON.parse(JSON.stringify(res));						
+						for (var i = 0; i < 3; i++) {
+							$('.myCards').append('<div class="card" data-card="'+partida.cartas1[i]+'"><img src="images/'+partida.cartas1[i]+'.jpg" /></div>');
+						};
+						$('.partida_id').append('Partida: '+partida._id);
+						$('.currentPlayer').append('Player: '+partida.player1);
+						
 					});
 			/*$.get( "/partidas/"+partida_id, { token: token }, function(data) { 
 					$('.main').html('');
@@ -170,12 +177,26 @@ $(document).ready(function(){
 				});*/
 		}
 	});
+	
+	//empiezan los sockets
+	$('.main').on('click', '.card', function(){
+		var card = $(this).data('card');
+		alert(card);
+	});
 });
+
+function createElements(){
+	$('.main').html('<div class="currentPlayer"></div><div class="myCards"></div><div class="yourCards"></div>');
+}
 </script>
 <link rel="stylesheet" type="text/css" href="./css">
 </head>
 <body onload="isLogued();">
+<div class="partida_id"></div>
+		
 	<div class="main">
+		
+
 		<form method="post" action="#">
 
 		user: <input type="text" name="user" id="user"><br />

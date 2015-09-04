@@ -109,8 +109,10 @@ exports.findById = function(req, res) {
     if(err) return res.send(500, err.message);
 
     console.log('GET /partida/' + req.params.id);
-        //res.status(200).jsonp(partida);
-        res.send(200).jsonp(partida);
+         res.setHeader('Content-Type', 'application/json');
+        // res.status(200).jsonp(partida);
+         res.send(partida);
+              console.log('partida: '+partida);
     });
 };
 

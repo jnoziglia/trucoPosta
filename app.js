@@ -200,10 +200,14 @@ rtGral.get('/css', function (req, res) {
   res.sendFile(__dirname + '/css/styles.css');
 });
 
+
+
 rtGral.get('/main', function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
+//carpeta public para las imagenes
+app.use(express.static('public'));
 app.use('/cartas', cartasRt);
 app.use('/partidas', partidasRt);
 app.use('/partida', partidasRt);
@@ -214,7 +218,7 @@ app.use('/', rtGral);
 
 
 server.listen(8080, function() {
-  console.log("Node server running on http://localhost:8000");
+  console.log("Node server running on http://localhost:8080");
 });
 
 
