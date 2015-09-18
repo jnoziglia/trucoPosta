@@ -3,11 +3,10 @@ var express = require("express"),
     bodyParser  = require("body-parser"),
     methodOverride = require("method-override");
     mongoose = require('mongoose');
-
+var fs = require('fs');
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-var jwt = require('jsonwebtoken');
-var config = require('./config');
+var md5 = require('md5');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -21,12 +20,6 @@ var userRt = express.Router();
 //file routes
 var rtGral = express.Router();
 
-//CONFIG
-
-var port = process.env.PORT || 8080; // used to create, sign, and verify tokens
-app.set('tokenultrasecreto', config.secret); // secret variable
-
-
 
 //MODELS
 var models = require('./models/carta_model')(app, mongoose);
@@ -39,14 +32,17 @@ var CtrlPartidas = require('./controllers/partidas');
 var CtrlAuth = require('./controllers/auth');
 var CtrlRoutes = require('./routes');
 CtrlRoutes.app = app;
-//var middleware = require('./middleware');
 
+var users = {};
+var userSockets;
+var clients = {};
 
-var mongoose = require('mongoose');
+//CONEXION A LA BASE
+/*var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/truco', function(err, res) {
     if(err) throw err;
     console.log('Connected to Database');
-});
+});*/
 
 //auth
   userRt.get('/signup', function (req, res) {
@@ -63,113 +59,6 @@ userRt.route('/signup')
 
 userRt.route('/login')
   .post(CtrlAuth.emailLogin);
-
-//importo las rutas
-//require('./routes')(app, io); 
-
-// route middleware to verify a token
-partidasRt.use(function(req, res, next) {
-
-  // check header or url parameters or post parameters for token
-  var token = req.body.token || req.query.token || req.headers['x-access-token'];
-
-  // decode token
-  if (token) {
-
-    // verifies secret and checks exp
-    jwt.verify(token, app.get('tokenultrasecreto'), function(err, decoded) {      
-      if (err) {
-        return res.json({ success: false, message: 'Failed to authenticate token.' });    
-      } else {
-        // if everything is good, save to request for use in other routes
-        req.decoded = decoded;    
-        next();
-      }
-    });
-
-  } else {
-
-    // if there is no token
-    // return an error
-    return res.status(403).send({ 
-        success: false, 
-        message: 'No token provided.' 
-    });
-    
-  }
-});
-/////////////////////////////
-
-// route middleware to verify a token
-cartasRt.use(function(req, res, next) {
-
-  // check header or url parameters or post parameters for token
-  var token = req.body.token || req.query.token || req.headers['x-access-token'];
-
-  // decode token
-  if (token) {
-
-    // verifies secret and checks exp
-    jwt.verify(token, app.get('tokenultrasecreto'), function(err, decoded) {      
-      if (err) {
-        return res.json({ success: false, message: 'Failed to authenticate token.' });    
-      } else {
-        // if everything is good, save to request for use in other routes
-        req.decoded = decoded;    
-        next();
-      }
-    });
-
-  } else {
-
-    // if there is no token
-    // return an error
-    return res.status(403).send({ 
-        success: false, 
-        message: 'No token provided.' 
-    });
-    
-  }
-});
-/////////////////////////////
-
-// route middleware to verify a token
-  router.use(function(req, res, next) {
-
-    // check header or url parameters or post parameters for token
-    var token = req.body.token || req.query.token || req.headers['x-access-token'];
-    
-    /*console.log('token post:'+req.body.token);
-    console.log('token header:'+req.headers);
-    console.log('token query:'+req.query.token);
-    console.log('token real:'+token);*/
-    
-    // decode token
-    if (token) {
-
-      // verifies secret and checks exp
-      jwt.verify(token, app.get('tokenultrasecreto'), function(err, decoded) {      
-        if (err) {
-          return res.json({ success: false, message: 'Failed to authenticate token.' });    
-        } else {
-          // if everything is good, save to request for use in other routes
-          req.decoded = decoded;    
-          next();
-        }
-      });
-
-    } else {
-
-      // if there is no token
-      // return an error
-      return res.status(403).send({ 
-          success: false, 
-          message: 'No token provided.' 
-      });
-      
-    }
-  });
-  /////////////////////////////
 
 
 partidasRt.route('/')
@@ -223,29 +112,62 @@ server.listen(8080, function() {
 
 
 io.on('connection', function (socket) {
+  var user;
   socket.emit('news', { hello: 'world' });
   socket.on('my other event', function (data) {
     console.log(data);
   });
 
-socket.on('partidaCreada', function(data) {
-  console.log(data);
-  socket.broadcast.emit('recargar');
-});
-
-  socket.on('partidaNueva', function(data) {
-    console.log(Controller.findAllcartas);
-    CtrlPartidas.createPartida(function(partida){
-      socket.emit('partida', {partida: partida})
-    })   
-    /*CtrlPartidas.getPartida(function(partida){
-      socket.emit('partida', {partida: partida});
-    })*/
+  socket.on('user_connected', function (data) {
+    if (!data.user || !users[data.user]) {
+      console.log('new user');
+      var file = fs.readFileSync(__dirname + '/views/login.html', 'utf8');
+    }
+    else {
+      if (users[data.user].md5 == data.md5){
+        clients[socket.id] = socket;
+        users[data.user].socket = socket.id;
+        user = data.user;
+        var file = fs.readFileSync(__dirname + '/views/partidas.html', 'utf8');
+      }
+      else {
+        socket.emit('user_conflict');
+        var file = fs.readFileSync(__dirname + '/views/login.html', 'utf8');
+      }
+    }
+    socket.emit('file', {file: file});
   });
-/*socket.on('disconnect', function(data) {
-    console.log('user disconnected');
-    socket.broadcast.emit('disconnected');
-  });*/
+
+  socket.on('new_user', function (data) {
+    var username = data.username;
+    user = username;
+    if(!users[username]) {
+      var info = {};
+      //var md5 = md5(username+'token');
+      info.md5 = md5(username+'token');
+      info.socket = socket.id;
+      users[username] = info;
+      clients[socket.id] = socket;
+      this.emit('new_user_created', {username: username, md5: info.md5});
+      var file = fs.readFileSync(__dirname + '/views/partidas.html', 'utf8');
+      socket.emit('file', {file: file});
+    }
+    else {
+      socket.emit('user_exists');
+    }
+  });
+
+  socket.on('disconnect', function() {
+    console.log(user);
+    users[user].socket = 0;
+    delete clients[socket.id];
+    //user
+    setTimeout(function(){ 
+      if(users[user].socket == 0) {
+        delete users[user]; 
+      }
+    }, 30000);
+  });
 
 });
 

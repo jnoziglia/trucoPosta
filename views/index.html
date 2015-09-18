@@ -3,218 +3,59 @@
 <head>
 <script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-<script>
+<script defer>
 
   var socket = io.connect('http://localhost:8080');
+  socket.emit('user_connected', {user: sessionStorage.getItem('username'), md5: sessionStorage.getItem('md5') });
   socket.on('news', function (data) {
     console.log(data);
     socket.emit('my other event', { my: 'data' });
   });
-  socket.on('devuelvo', function (data) {
-	alert(data);
+
+  socket.on('file', function(data) {
+  	//console.log(data.file);
+  	$('.main').html('');
+  	$('.main').append(data.file);
   });
 
-  socket.on('partida', function(data) {
-  	$('.partidas').html('Partida creada: '+data.partida+ ', esperando jugador...');
+  socket.on('new_user_created', function(data) {
+  	sessionStorage.setItem('username', data.username);
+  	sessionStorage.setItem('md5', data.md5);
 
   });
 
-  socket.on('recargar', function(data) {
-  	$(".partidas").html('');
-  	getPartidas();
+  socket.on('user_conflict', function(data) {
+  	sessionStorage.clear();
   });
 
-  socket.on('disconnected', function(data) {
-  	alert('usuario desconectado');
+  socket.on('user_exists', function(data) {
+  	alert('User already exists');
   });
 
+  function newUser() {
+  	socket.emit('new_user', {username: $('#username').val()});
+  }
 
-	function crearPartida() {
-		//alert('cliquio');
-		//socket.emit('partidaNueva', { msj: 'holis' });
-		/*$.get( "/maxPartida", function( data ) {
-			var num = data.numero + 1;
-			console.log(data.numero);
-			var partida = {fecha:Date(), player1:1, numero: num};
-			$.post( "/partidas", partida )
-			.done(function(data) {
-				socket.emit('partidaCreada', data);
-			});
-		});*/
-		$.ajax({
-				  method: "POST",
-				  url: "/partidas",
-				  data: {fecha:Date(), player1:1},
-				  'beforeSend': function(xhr) {
-					    if (localStorage.getItem('userToken')) {
-					      xhr.setRequestHeader('x-access-token', localStorage.getItem('userToken'));
-					    }
-					}
-				})
-				.done(function(data) {
-					socket.emit('partidaCreada', data);
-				});
-		
-		/*$.post( "/partidas", {fecha:Date(), player1:1} )
-		.done(function(data) {
-			socket.emit('partidaCreada', data);
-		});*/
-	}
+</script>
 
-	function getPartidas(){
-		$.get( "/partidas", function( data ) {
-	 		data.forEach(function(item){
-				$('.partidas').append('<div class="partida">'+item.numero+'</div>');
-			});
-		});
-	}
+<script type="text/javascript">
 
-	function sendLogin(){
-		var user = $('#user').val();
-		var password = $('#password').val();
-		$.post( "/auth/login", {username: user, password: password} )
-		.done(function(data) {
-			
-			//ACA TENGO EL USER!!!
-			var partida = JSON.parse(JSON.stringify(data));
-			var user = JSON.parse(JSON.stringify(partida.user));
-			console.log(user); 	
-
-			//guardo el id del user en localstorage
-
-			localStorage.setItem('userToken', data.token);
-			localStorage.setItem('userID', user._id);
-
-			$.get( "/home", { token: data.token, user: user }, function(data) { 
-				$('.main').html('');
-				$('.main').append(data);
-				/*$.get( "/partidas", function( data ) {
-			 		data.forEach(function(item){
-						$('.partidas').append('<div class="partida">'+item.numero+'</div>');
-					});*/
-
-				$.ajax({
-				  method: "GET",
-				  url: "/partidas",
-				  'beforeSend': function(xhr) {
-					    if (localStorage.getItem('userToken')) {
-					      xhr.setRequestHeader('x-access-token', localStorage.getItem('userToken'));
-					    }
-					}
-				})
-				.done(function( res ) {
-			 		res.forEach(function(item){
-						$('.partidas').append('<div class="partida"><a href="javascript:void(0)" class="jugarPartida" data-partida="'+item._id+'">'+item.numero+'</a></div>');
-					});
-				});
-			});
-			/*$.ajax({
-		         url: "/home",
-		         data: { token: data.token },
-		         type: "GET",
-		         beforeSend: function(xhr){xhr.setRequestHeader('x-access-token', data.token);},
-		         success: function() { alert('Success!' + data.token); }
-		      });*/
-		});
-	}
-  
-function isLogued(){
-	var token = localStorage.getItem('userToken');
-	if(token){
-		$.get( "/home", { token: token }, function(data) { 
-				$('.main').html('');
-				$('.main').append(data);
-
-				$.ajax({
-				  method: "GET",
-				  url: "/partidas",
-				  'beforeSend': function(xhr) {
-					    if (localStorage.getItem('userToken')) {
-					      xhr.setRequestHeader('x-access-token', localStorage.getItem('userToken'));
-					    }
-					}
-				})
-				.done(function( res ) {
-
-			 		res.forEach(function(item){
-			 			var partida = JSON.parse(JSON.stringify(res));
-			 			var user = JSON.parse(JSON.stringify(partida.user));
-			 			console.log(user);
-			 			$('.partidas').append('<div class="partida"><a href="javascript:void(0)" class="jugarPartida" data-partida="'+item._id+'">'+item.numero+'</a></div>');
-					});
-				});
-			});
-	}
-}
-
-
-
-function logout(){
-	localStorage.removeItem('userToken');
-	location.reload();
-}
-
-$(document).ready(function(){
-	$('.main').on('click', '.jugarPartida', function(){
-		var token = localStorage.getItem('userToken');
-		var partida_id = $(this).data('partida');
-		if(token){
-			$.ajax({
-					  method: "GET",
-					  url: "/partidas/"+partida_id,
-					  data: {token: token},
-					  'beforeSend': function(xhr) {
-						    if (localStorage.getItem('userToken')) {
-						      xhr.setRequestHeader('x-access-token', localStorage.getItem('userToken'));
-						    }
-						}
-					})
-					.done(function( res ) {
-				 		$('.main').html('');
-				 		createElements();
-						var partida = JSON.parse(JSON.stringify(res));						
-						for (var i = 0; i < 3; i++) {
-							$('.myCards').append('<div class="card" data-card="'+partida.cartas1[i]+'"><img src="images/'+partida.cartas1[i]+'.jpg" /></div>');
-						};
-						$('.partida_id').append('Partida: '+partida._id);
-						$('.currentPlayer').append('Player: '+partida.player1);
-						
-					});
-			/*$.get( "/partidas/"+partida_id, { token: token }, function(data) { 
-					$('.main').html('');
-					$('.main').append(data);
-
-					
-				});*/
-		}
-	});
-	
-	//empiezan los sockets
-	$('.main').on('click', '.card', function(){
-		var card = $(this).data('card');
-		alert(card);
-	});
-});
-
-function createElements(){
-	$('.main').html('<div class="currentPlayer"></div><div class="myCards"></div><div class="yourCards"></div>');
-}
 </script>
 <link rel="stylesheet" type="text/css" href="./css">
 </head>
-<body onload="isLogued();">
+<body>
 <div class="partida_id"></div>
 		
 	<div class="main">
 		
 
-		<form method="post" action="#">
+		<!--<form method="post" action="#">
 
 		user: <input type="text" name="user" id="user"><br />
 		password: <input type="text" name="password" id="password"><br />
 		
 		<a onclick="sendLogin();" href="javascript:void(0);">Login</a>
-		</form>
+		</form>-->
 	</div>
 </body>
 
