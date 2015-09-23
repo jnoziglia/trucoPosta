@@ -1,6 +1,9 @@
 //File: controllers/partidas.js
 var mongoose = require('mongoose');
 var Partida  = mongoose.model('partida');
+var md5 = require('md5');
+
+var partidas = {};
 
 //GET - Return all partidas in the DB
 exports.findAllPartidas = function(req, res) {
@@ -123,4 +126,27 @@ exports.deletePartida = function(req, res) {
       res.status(200);
         });
     });
+};
+
+/* -------------------------------------------------------------- */
+
+module.exports = {
+    nuevaPartida: function(username) {
+        var partida = md5(username + (Math.floor(Math.random() * 100)+1)  + partidas.length);
+        
+        partidas[partida] = {};
+        partidas[partida].jugador1 = username;
+        partidas[partida].jugador2 = "";
+        partidas[partida].numero = Object.keys(partidas).length;
+        console.log(partidas);
+        return partida;
+    },
+
+    traerPartidas: function(req, res) {
+        res.json(partidas);
+    },
+
+    traerPartida: function(req, res) {
+        res.json(partidas[req.params.id]);
+    }
 };

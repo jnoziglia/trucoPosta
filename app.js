@@ -28,7 +28,7 @@ var models = require('./models/user_model')(app, mongoose);
 
 //CONTROLLERS
 var Controller = require('./controllers/cartas');
-var CtrlPartidas = require('./controllers/partidas');
+var CtrlPartidas = require('./controllers/partidas.js');
 var CtrlAuth = require('./controllers/auth');
 var CtrlRoutes = require('./routes');
 CtrlRoutes.app = app;
@@ -45,16 +45,16 @@ mongoose.connect('mongodb://localhost/truco', function(err, res) {
 });*/
 
 //auth
-  userRt.get('/signup', function (req, res) {
+/*  userRt.get('/signup', function (req, res) {
     res.sendFile(__dirname + '/views/auth/signup.html');
   });
   userRt.get('/login', function (req, res) {
     res.sendFile(__dirname + '/views/auth/login.html');
-  });
+  });*/
 
 //NOTA MENTAL: esto deberia ir en las rutas???
 //API  USERS
-userRt.route('/signup')
+/*userRt.route('/signup')
   .post(CtrlAuth.emailSignup);
 
 userRt.route('/login')
@@ -68,14 +68,14 @@ partidasRt.route('/')
 partidasRt.route('/:id')
   .get(CtrlPartidas.findById)
   .delete(CtrlPartidas.deletePartida);
-
+*/
 
 /*partidasRt.route('/maxPartida')
   .get(CtrlPartidas.findMax);*/
   
-cartasRt.route('/')
+/*cartasRt.route('/')
   .get(Controller.findAllcartas)
-  .post(Controller.addCarta);
+  .post(Controller.addCarta);*/
 
 router.get('/', function (req, res) {
   res.sendFile(__dirname + '/views/partidas.html');
@@ -90,10 +90,23 @@ rtGral.get('/css', function (req, res) {
 });
 
 
-
 rtGral.get('/main', function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
+
+
+partidasRt.route('/')
+  .post(function(req, res) {
+    if(validateUser(req.body.username, req.body.md5)) {
+      var partida = CtrlPartidas.nuevaPartida(req.body.username);
+      
+      res.json({partida: partida});
+    }
+  })
+  .get(CtrlPartidas.traerPartidas);
+
+partidasRt.route('/:id')
+  .get(CtrlPartidas.traerPartida);
 
 //carpeta public para las imagenes
 app.use(express.static('public'));
@@ -116,6 +129,11 @@ io.on('connection', function (socket) {
   socket.emit('news', { hello: 'world' });
   socket.on('my other event', function (data) {
     console.log(data);
+  });
+
+  socket.on('nueva_partida', function(data) {
+    socket.broadcast.emit('cambio_en_partidas');
+    socket.emit('cambio_en_partidas_recibido', data);
   });
 
   socket.on('user_connected', function (data) {
@@ -158,15 +176,17 @@ io.on('connection', function (socket) {
   });
 
   socket.on('disconnect', function() {
-    console.log(user);
-    users[user].socket = 0;
-    delete clients[socket.id];
-    //user
-    setTimeout(function(){ 
-      if(users[user].socket == 0) {
-        delete users[user]; 
-      }
-    }, 30000);
+    if(user) {
+      console.log(user);
+      users[user].socket = 0;
+      delete clients[socket.id];
+      //user
+      setTimeout(function(){ 
+        if(users[user].socket == 0) {
+          delete users[user]; 
+        }
+      }, 30000);
+    }
   });
 
 });
@@ -178,3 +198,13 @@ nsp.on('connection', function(socket){
 
 });
 //nsp.emit('hi', 'everyone!');
+
+
+function validateUser(username, md5) {
+  if (users[username].md5 == md5){
+    return true;
+  }
+  else {
+    return false;
+  }
+}

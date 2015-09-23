@@ -32,8 +32,21 @@
   	alert('User already exists');
   });
 
+
+
   function newUser() {
   	socket.emit('new_user', {username: $('#username').val()});
+  }
+
+  function crearPartida() {
+    $.ajax({
+      type: "POST",
+      url: "/partidas",
+      data: {username: sessionStorage.getItem('username'), md5: sessionStorage.getItem('md5')}
+    })
+      .done(function( data ) {
+        socket.emit('nueva_partida', data);
+      });
   }
 
 </script>

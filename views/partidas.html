@@ -1,3 +1,35 @@
+<script type="text/javascript">
+
+	$(document).ready(cargarPartidas);
+
+
+	function cargarPartidas() {
+		$.ajax({
+	      type: "GET",
+	      url: "/partidas",
+	    })
+	  .done(function( data ) {
+	  	//console.log(data);
+	    if(Object.keys(data).length > 0) {
+	    	var htmlString = '';
+	    	/*data.forEach(function(e, i, a) {
+	    		htmlString += '<div>'+e.numero+'</div>';
+	    	});*/
+	  		for(var index in data) {
+	  			console.log(data.index);
+	  			htmlString += '<div>'+data[index].numero+'</div>';
+	  		}
+	    	$('.partidas').html(htmlString);
+	    }
+	  });
+	}
+
+	socket.on('cambio_en_partidas', cargarPartidas);
+
+	socket.on('cambio_en_partidas_recibido',function(data) {
+		window.location.href = '/partidas/'+data.partida;
+	})
+</script>
 <a href="javascript:void(0)" onclick="logConsola()">Holis</a>
 <a href="javascript:void(0)" onclick="crearPartida()">Crear partida</a>
 <a href="javascript:void(0)" onclick="logout()">Logout</a>
