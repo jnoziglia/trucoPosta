@@ -7,6 +7,7 @@
 		$.ajax({
 	      type: "GET",
 	      url: "/partidas",
+	      data: {username: sessionStorage.getItem('username'), md5: sessionStorage.getItem('md5')}
 	    })
 	  .done(function( data ) {
 	  	//console.log(data);
@@ -26,9 +27,7 @@
 
 	socket.on('cambio_en_partidas', cargarPartidas);
 
-	socket.on('cambio_en_partidas_recibido',function(data) {
-		window.location.href = '/partidas/'+data.partida;
-	})
+	
 </script>
 <a href="javascript:void(0)" onclick="logConsola()">Holis</a>
 <a href="javascript:void(0)" onclick="crearPartida()">Crear partida</a>

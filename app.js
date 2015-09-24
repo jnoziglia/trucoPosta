@@ -94,14 +94,28 @@ rtGral.get('/main', function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
+partidasRt.use(function(req, res, next) {
+  var username = req.body.username || req.query.username;
+  var userHash = req.body.md5 || req.query.md5;
+  if(validateUser(username, userHash)) {
+    console.log('valido');
+    next();
+  }
+  else {
+    console.log('no valido');
+  }
+});
+
 
 partidasRt.route('/')
   .post(function(req, res) {
-    if(validateUser(req.body.username, req.body.md5)) {
+    //if(validateUser(req.body.username, req.body.md5)) {
       var partida = CtrlPartidas.nuevaPartida(req.body.username);
-      
-      res.json({partida: partida});
-    }
+      users[req.body.username].partida = partida.partida;
+      var file = fs.readFileSync(__dirname + '/views/juego.html', 'utf8');
+      //res.sendFile(__dirname + '/views/juego.html')
+      res.json({file: file, partida: partida});
+    //}
   })
   .get(CtrlPartidas.traerPartidas);
 
@@ -133,9 +147,11 @@ io.on('connection', function (socket) {
 
   socket.on('nueva_partida', function(data) {
     socket.broadcast.emit('cambio_en_partidas');
-    socket.emit('cambio_en_partidas_recibido', data);
+    //socket.emit('cambio_en_partidas_recibido', data);
+
   });
 
+  //Usuario ingresa a la pagina
   socket.on('user_connected', function (data) {
     if (!data.user || !users[data.user]) {
       console.log('new user');
@@ -156,6 +172,7 @@ io.on('connection', function (socket) {
     socket.emit('file', {file: file});
   });
 
+  //Se registra nuevo usuario
   socket.on('new_user', function (data) {
     var username = data.username;
     user = username;
@@ -164,6 +181,7 @@ io.on('connection', function (socket) {
       //var md5 = md5(username+'token');
       info.md5 = md5(username+'token');
       info.socket = socket.id;
+      info.partida = '';
       users[username] = info;
       clients[socket.id] = socket;
       this.emit('new_user_created', {username: username, md5: info.md5});
@@ -175,6 +193,7 @@ io.on('connection', function (socket) {
     }
   });
 
+  //Usuario desconectado
   socket.on('disconnect', function() {
     if(user) {
       console.log(user);
@@ -191,13 +210,7 @@ io.on('connection', function (socket) {
 
 });
 
-var nsp = io.of('/vista');
-nsp.on('connection', function(socket){
-  console.log('someone connected');
-  socket.emit('msj', 'socketVista');
 
-});
-//nsp.emit('hi', 'everyone!');
 
 
 function validateUser(username, md5) {

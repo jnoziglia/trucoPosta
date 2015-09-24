@@ -139,7 +139,7 @@ module.exports = {
         partidas[partida].jugador2 = "";
         partidas[partida].numero = Object.keys(partidas).length;
         console.log(partidas);
-        return partida;
+        return partidas[partida];
     },
 
     traerPartidas: function(req, res) {

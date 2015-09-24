@@ -5,6 +5,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script defer>
 
+  
+
   var socket = io.connect('http://localhost:8080');
   socket.emit('user_connected', {user: sessionStorage.getItem('username'), md5: sessionStorage.getItem('md5') });
   socket.on('news', function (data) {
@@ -32,6 +34,9 @@
   	alert('User already exists');
   });
 
+  socket.on('cambio_en_partidas_recibido',function(data) {
+    //window.location.href = '/partidas/'+data.partida;
+  });
 
 
   function newUser() {
@@ -45,7 +50,10 @@
       data: {username: sessionStorage.getItem('username'), md5: sessionStorage.getItem('md5')}
     })
       .done(function( data ) {
-        socket.emit('nueva_partida', data);
+        var partida = data.partida; 
+        socket.emit('nueva_partida');
+        $('.main').html(data.file);
+        $('#jugador1').text(partida.jugador1);
       });
   }
 
