@@ -162,7 +162,12 @@ io.on('connection', function (socket) {
         clients[socket.id] = socket;
         users[data.user].socket = socket.id;
         user = data.user;
-        var file = fs.readFileSync(__dirname + '/views/partidas.html', 'utf8');
+        if (!users[user].partida) {
+          var file = fs.readFileSync(__dirname + '/views/partidas.html', 'utf8');
+        }
+        else {
+          var file = fs.readFileSync(__dirname + '/views/juego.html', 'utf8');
+        }
       }
       else {
         socket.emit('user_conflict');
