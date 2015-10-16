@@ -2,36 +2,30 @@ var express = require("express"),
     app = express(),
     bodyParser  = require("body-parser"),
     methodOverride = require("method-override");
-    mongoose = require('mongoose');
 var fs = require('fs');
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var md5 = require('md5');
+var session = require('client-sessions');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(methodOverride());
+app.use(session({
+  cookieName: 'session',
+  secret: 'super_secret',
+  duration: 30 * 60 * 1000,
+  activeDuration: 5 * 60 * 1000,
+}));
 
 app.set('view engine', 'ejs');
 
 var router = express.Router();
-var cartasRt = express.Router();
 var partidasRt = express.Router();
-//user routes
-var userRt = express.Router();
-//file routes
 var rtGral = express.Router();
 
 
-//MODELS
-var models = require('./models/carta_model')(app, mongoose);
-var models = require('./models/partida_model')(app, mongoose);
-var models = require('./models/user_model')(app, mongoose);
-
 //CONTROLLERS
-var Controller = require('./controllers/cartas');
-var CtrlPartidas = require('./controllers/partidas.js');
-var CtrlAuth = require('./controllers/auth');
 var CtrlRoutes = require('./routes');
 CtrlRoutes.app = app;
 
@@ -39,53 +33,55 @@ var users = {};
 var userSockets;
 var clients = {};
 
-//CONEXION A LA BASE
-/*var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/truco', function(err, res) {
-    if(err) throw err;
-    console.log('Connected to Database');
-});*/
+app.get('/login', function(req, res) {
+  res.render('pages/login.ejs');
+});
 
-//auth
-/*  userRt.get('/signup', function (req, res) {
-    res.sendFile(__dirname + '/views/auth/signup.html');
+app.post('/login', function(req, res) {
+  User.findOne({ email: req.body.email }, function(err, user) {
+    if (!user) {
+      res.render('pages/login.ejs', { error: 'Invalid email or password.' });
+    } else {
+      if (req.body.password === user.password) {
+        // sets a cookie with the user's info
+        req.session.user = user;
+        res.redirect('/dashboard');
+      } else {
+        res.render('pages/login.ejs', { error: 'Invalid email or password.' });
+      }
+    }
   });
-  userRt.get('/login', function (req, res) {
-    res.sendFile(__dirname + '/views/auth/login.html');
-  });*/
+});
 
-//NOTA MENTAL: esto deberia ir en las rutas???
-//API  USERS
-/*userRt.route('/signup')
-  .post(CtrlAuth.emailSignup);
+app.post('/guest', function(req, res) {
+  var user = {};
+  user.username = req.body.username;
+  // sets a cookie with the user's info
+  users[user.username] = user;
+  req.session.user = user;
+  res.redirect('/dashboard');
+});
 
-userRt.route('/login')
-  .post(CtrlAuth.emailLogin);
+app.use(function(req, res, next) {
+  if (req.session && req.session.user) {
+    if (users[req.session.user.username]) {
+      var user = users[req.session.user.username];
+      req.user = user;
+      req.session.user = user;  //refresh the session value
+      res.locals.user = user;
+    }
+    // finishing processing the middleware and run the route
+    next();
+  } else {
+    next();
+  }
+});
 
-
-partidasRt.route('/')
-  .get(CtrlPartidas.findAllPartidas)
-  .post(CtrlPartidas.addPartida);
-
-partidasRt.route('/:id')
-  .get(CtrlPartidas.findById)
-  .delete(CtrlPartidas.deletePartida);
-*/
-
-/*partidasRt.route('/maxPartida')
-  .get(CtrlPartidas.findMax);*/
-  
-/*cartasRt.route('/')
-  .get(Controller.findAllcartas)
-  .post(Controller.addCarta);*/
 
 router.get('/', function (req, res) {
   res.sendFile(__dirname + '/views/partidas.html');
 });
 
-rtGral.get('/vista', function (req, res) {
-  res.sendFile(__dirname + '/views/vista2.html');
-});
 
 rtGral.get('/css', function (req, res) {
   res.sendFile(__dirname + '/css/styles.css');
@@ -96,40 +92,18 @@ rtGral.get('/main', function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-partidasRt.use(function(req, res, next) {
-  var username = req.body.username || req.query.username;
-  var userHash = req.body.md5 || req.query.md5;
-  if(validateUser(username, userHash)) {
-    console.log('valido');
-    next();
-  }
-  else {
-    console.log('no valido');
-  }
+
+app.get('/dashboard', requireLogin, function(req, res) {
+  res.render('dashboard.ejs');
 });
 
 
-partidasRt.route('/')
-  .post(function(req, res) {
-    //if(validateUser(req.body.username, req.body.md5)) {
-      var partida = CtrlPartidas.nuevaPartida(req.body.username);
-      users[req.body.username].partida = partida.partida;
-      var file = fs.readFileSync(__dirname + '/views/juego.html', 'utf8');
-      //res.sendFile(__dirname + '/views/juego.html')
-      res.json({file: file, partida: partida});
-    //}
-  })
-  .get(CtrlPartidas.traerPartidas);
 
-partidasRt.route('/:id')
-  .get(CtrlPartidas.traerPartida);
 
 //carpeta public para las imagenes
 app.use(express.static('public'));
-app.use('/cartas', cartasRt);
 app.use('/partidas', partidasRt);
 app.use('/partida', partidasRt);
-app.use('/auth', userRt);
 app.use('/home', router);
 app.use('/', rtGral);
 
@@ -200,23 +174,17 @@ io.on('connection', function (socket) {
     }
   });
 
-  //Usuario desconectado
-  socket.on('disconnect', function() {
-    if(user) {
-      console.log(user);
-      users[user].socket = 0;
-      delete clients[socket.id];
-      //user
-      setTimeout(function(){ 
-        if(users[user].socket == 0) {
-          delete users[user]; 
-        }
-      }, 30000);
-    }
-  });
 
 });
 
+
+function requireLogin (req, res, next) {
+  if (!req.user) {
+    res.redirect('/login');
+  } else {
+    next();
+  }
+};
 
 
 
