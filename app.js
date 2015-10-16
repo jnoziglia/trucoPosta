@@ -12,6 +12,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(methodOverride());
 
+app.set('view engine', 'ejs');
+
 var router = express.Router();
 var cartasRt = express.Router();
 var partidasRt = express.Router();
